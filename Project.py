@@ -2,6 +2,8 @@
 
 import argparse
 import pandas as pd
+import random
+import numpy as num
 
 def make_arg_parser():
   parser = argparse.ArgumentParser()
@@ -17,5 +19,12 @@ if __name__ == '__main__':
   args = parser.parse_args()
 
   seq_file = pd.read_csv(args.seqs)
+  states = num.array(["A", "C", "G", "T"])
+  obs = num.empty((4,50), dtype=int)
+
+  for i in range(4):
+    for j in range(50):
+      obs[i][j] = random.randint(0,2000)
 
   print(seq_file)
+  print(obs)
