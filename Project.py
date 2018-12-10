@@ -123,5 +123,15 @@ if __name__ == '__main__':
   transition_array = transition_prob(g_df, g_len, transition_array, 2, 'G')
   transition_array = transition_prob(t_df, t_len, transition_array, 3, 'T')
 
-  print(transition_array)
+  sort_a = num.array(obs[:,[0]], copy=True)
+  sort_c = num.array(obs[:,[1]], copy=True)
+  sort_g = num.array(obs[:,[2]], copy=True)
+  sort_t = num.array(obs[:,[3]], copy=True)
+
+  sort_a.sort(axis=0)
+  sort_c.sort(axis=0)
+  sort_t.sort(axis=0)
+  sort_g.sort(axis=0)
+
+  
  
