@@ -43,7 +43,7 @@ def transition_prob(df, df_len, arr, row_idx, current_base):
           current_to_t_count += 1
       else:
           current_to_a_count += 1
-    if (max_height == c_area):
+    elif (max_height == c_area):
       if (current_base == 'C'):
         if (max_wo_current_c == 0):
           current_to_c_count += 1
@@ -55,7 +55,7 @@ def transition_prob(df, df_len, arr, row_idx, current_base):
           current_to_t_count += 1
       else:
           current_to_c_count += 1
-    if (max_height == g_area):
+    elif (max_height == g_area):
       if (current_base == 'G'):
         if (max_wo_current_g == 0):
           current_to_g_count += 1
@@ -67,7 +67,7 @@ def transition_prob(df, df_len, arr, row_idx, current_base):
           current_to_t_count += 1
       else:
           current_to_g_count += 1
-    if (max_height == t_area):
+    elif (max_height == t_area):
       if (current_base == 'T'):
         if (max_wo_current_t == 0):
           current_to_t_count += 1
