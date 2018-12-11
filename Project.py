@@ -171,5 +171,5 @@ if __name__ == '__main__':
   seq = num.array([lst]).T
   model = model.fit(seq)
   logprob, output = model.decode(seq, algorithm= "viterbi")
-  print "Heights in:", ",".join(map(lambda x: str(obs[0][int(x)]), seq.T[0]))
-  print "Seq out:", ", ".join(map(lambda x: str(states[int(x)]), output))
+  print ",".join(map(lambda x: str(obs[0][int(x)]), seq.T[0]))
+  print ",".join(map(lambda x: str(states[int(x)]), output))
