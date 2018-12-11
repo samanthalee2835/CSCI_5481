@@ -136,7 +136,7 @@ if __name__ == '__main__':
   c_len = len(c_df.index)
   g_len = len(g_df.index)
   t_len = len(t_df.index)
-  
+
   for i in range(50):
     a_index = random.randint(0,a_len)
     c_index = random.randint(0,c_len)
@@ -158,19 +158,18 @@ if __name__ == '__main__':
   ems = ems_prob(obs, 2, ems)
   ems = ems_prob(obs, 3, ems)
  
-  model = hmm.MultinomialHMM(n_components = 4)
+  model = hmm.MultinomialHMM(n_components = len(states), init_params="")
   model.startprob_ = num.array([0.25,0.25,0.25,0.25])
   model.transmat_ = transition_array
   model.emissionprob_ = ems
 
   lst = []
-  for j in range(10):
-    entry = random.randint(0,200)
-    lst.append(entry)
+  for j in range(200):
+    lst.append(j)
 
+  random.shuffle(lst)
   seq = num.array([lst]).T
-  print(seq)
   model = model.fit(seq)
   logprob, output = model.decode(seq, algorithm= "viterbi")
-  print "Heights in:", ",".join(map(lambda x: obs[int(x)], seq.T[0]))
-  print "Seq out:", ", ".join(map(lambda x: states[int(x)], output))
+  print "Heights in:", ",".join(map(lambda x: str(obs[0][int(x)]), seq.T[0]))
+  print "Seq out:", ", ".join(map(lambda x: str(states[int(x)]), output))
