@@ -1,5 +1,7 @@
 # Names: Sam Lee, Noah Kindt, Ben Novacek
 
+from __future__ import division
+from hmmlearn import hmm
 import argparse
 import pandas as pd
 import random
@@ -80,12 +82,39 @@ def transition_prob(df, df_len, arr, row_idx, current_base):
       else:
           current_to_t_count += 1
 
-  transition_array[row_idx][0] = 1.0 * current_to_a_count / df_len
-  transition_array[row_idx][1] = 1.0 * current_to_c_count / df_len
-  transition_array[row_idx][2] = 1.0 * current_to_g_count / df_len
-  transition_array[row_idx][3] = 1.0 * current_to_t_count / df_len
+  arr[row_idx][0] = 1.0 * current_to_a_count / df_len
+  arr[row_idx][1] = 1.0 * current_to_c_count / df_len
+  arr[row_idx][2] = 1.0 * current_to_g_count / df_len
+  arr[row_idx][3] = 1.0 * current_to_t_count / df_len
 
-  return transition_array
+  return arr
+
+def ems_prob(obs_arr, ele_idx, arr):
+
+  ele_dict = {}
+  total = 0.0
+
+  for i in range(200):
+    tup = obs_arr[0][i]
+    element = tup[ele_idx]
+    if element in ele_dict:
+      count = ele_dict.get(element, "none")
+      count += 1
+      d1 = {element: count}
+      ele_dict.update(d1)
+    else:
+      d1 = {element: 1}
+      ele_dict.update(d1)
+
+  for j in range(200):
+    tup = obs_arr[0][j]
+    element = tup[ele_idx]
+    value = ele_dict.get(element, "none")
+    calc = (1.0 / (len(ele_dict) * value)) 
+    arr[ele_idx][j] = calc
+    total = total + calc
+
+  return arr
 
 if __name__ == '__main__':
   parser = make_arg_parser()
@@ -94,7 +123,7 @@ if __name__ == '__main__':
 
   seq_df = pd.read_csv(args.seqs,sep="\t")
   states = num.array(([(norm_height,0,0,0)],[(0,norm_height,0,0)],[(0,0,norm_height,0)],[(0,0,0,norm_height)]))
-  obs = num.empty((50,4), dtype=(int,4))
+  obs = num.empty((1,200), dtype=(int,4))
   transition_array = num.empty((4,4), dtype=float)
 
   gb = seq_df.groupby('base_call')
@@ -109,29 +138,39 @@ if __name__ == '__main__':
   t_len = len(t_df.index)
   
   for i in range(50):
-    a_index = random.randint(0,a_len-1)
-    c_index = random.randint(0,c_len-1)
-    g_index = random.randint(0,g_len-1)
-    t_index = random.randint(0,t_len-1)
-    obs[i][0] = (a_df['A_area'][a_index],a_df['C_area'][a_index],a_df['G_area'][a_index],a_df['T_area'][a_index])
-    obs[i][1] = (c_df['A_area'][c_index],c_df['C_area'][c_index],c_df['G_area'][c_index],c_df['T_area'][c_index])
-    obs[i][2] = (g_df['A_area'][g_index],g_df['C_area'][g_index],g_df['G_area'][g_index],g_df['T_area'][g_index])
-    obs[i][3] = (t_df['A_area'][t_index],t_df['C_area'][t_index],t_df['G_area'][t_index],t_df['T_area'][t_index])
+    a_index = random.randint(0,a_len)
+    c_index = random.randint(0,c_len)
+    g_index = random.randint(0,g_len)
+    t_index = random.randint(0,t_len)
+    obs[0][i] = (a_df['A_area'][a_index],a_df['C_area'][a_index],a_df['G_area'][a_index],a_df['T_area'][a_index])
+    obs[0][50+i] = (c_df['A_area'][c_index],c_df['C_area'][c_index],c_df['G_area'][c_index],c_df['T_area'][c_index])
+    obs[0][51+i] = (g_df['A_area'][g_index],g_df['C_area'][g_index],g_df['G_area'][g_index],g_df['T_area'][g_index])
+    obs[0][52+i] = (t_df['A_area'][t_index],t_df['C_area'][t_index],t_df['G_area'][t_index],t_df['T_area'][t_index])
 
   transition_array = transition_prob(a_df, a_len, transition_array, 0, 'A')
   transition_array = transition_prob(c_df, c_len, transition_array, 1, 'C')
   transition_array = transition_prob(g_df, g_len, transition_array, 2, 'G')
   transition_array = transition_prob(t_df, t_len, transition_array, 3, 'T')
 
-  sort_a = num.array(obs[:,[0]], copy=True)
-  sort_c = num.array(obs[:,[1]], copy=True)
-  sort_g = num.array(obs[:,[2]], copy=True)
-  sort_t = num.array(obs[:,[3]], copy=True)
-
-  sort_a.sort(axis=0)
-  sort_c.sort(axis=0)
-  sort_t.sort(axis=0)
-  sort_g.sort(axis=0)
-
-  
+  ems = num.empty((4,200), dtype = float)
+  ems = ems_prob(obs, 0, ems)
+  ems = ems_prob(obs, 1, ems)
+  ems = ems_prob(obs, 2, ems)
+  ems = ems_prob(obs, 3, ems)
  
+  model = hmm.MultinomialHMM(n_components = 4)
+  model.startprob_ = num.array([0.25,0.25,0.25,0.25])
+  model.transmat_ = transition_array
+  model.emissionprob_ = ems
+
+  lst = []
+  for j in range(10):
+    entry = random.randint(0,200)
+    lst.append(entry)
+
+  seq = num.array([lst]).T
+  print(seq)
+  model = model.fit(seq)
+  logprob, output = model.decode(seq, algorithm= "viterbi")
+  print "Heights in:", ",".join(map(lambda x: obs[int(x)], seq.T[0]))
+  print "Seq out:", ", ".join(map(lambda x: states[int(x)], output))
